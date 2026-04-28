@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小小性格大探險 - 兒童版 MBTI 測驗</title>
+    <style>
+        :root {
+            --primary-color: #6C63FF;
+            --bg-color: #F0F2F5;
+            --card-bg: #FFFFFF;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 { color: var(--primary-color); font-size: 1.5rem; }
+
+        .progress-bar {
+            background: #ddd;
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        #progress {
+            background: var(--primary-color);
+            height: 100%;
+            width: 0%;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            min-height: 3.6em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        button.option-btn {
+            background: white;
+            border: 2px solid var(--primary-color);
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: 0.2s;
+            color: var(--primary-color);
+        }
+
+        button.option-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        #result-page {
+            display: none;
+            text-align: center;
+        }
+
+        .result-box {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .mbti-type {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .restart-btn {
+            margin-top: 20px;
+            background: #555;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🌟 小小性格大探險</h1>
+        <p>觀察孩子的日常行為，選出最接近的程度</p>
+    </header>
+
+    <div id="quiz-page">
+        <div class="progress-bar"><div id="progress"></div></div>
+        <div class="question-card">
+            <div class="question-text" id="question-text">載入中...</div>
+            <div class="options">
+                <button class="option-btn" onclick="handleAnswer(5)">5 - 非常符合（幾乎總是這樣）</button>
+                <button class="option-btn" onclick="handleAnswer(4)">4 - 經常符合（多數時候這樣）</button>
+                <button class="option-btn" onclick="handleAnswer(3)">3 - 普通（一半一半，看情況）</button>
+                <button class="option-btn" onclick="handleAnswer(2)">2 - 偶爾符合（少數時候這樣）</button>
+                <button class="option-btn" onclick="handleAnswer(1)">1 - 完全不符合（從來不這樣）</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-page">
+        <div class="result-box">
+            <h2>性格冒險代碼：</h2>
+            <div class="mbti-type" id="mbti-type">----</div>
+            <h3 id="mbti-title"></h3>
+            <p id="mbti-desc" style="line-height: 1.6; text-align: left; background: #f9f9f9; padding: 15px; border-radius: 10px;"></p>
+            <button class="restart-btn" onclick="location.reload()">重新測驗</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        // E vs I (5題)
+        { q: "在公園或學校，孩子會主動走向不認識的小朋友並嘗試加入遊戲。", dim: "EI" },
+        { q: "孩子傾向於邊說邊想，遇到感興趣的話題時，話量會明顯變多且節奏變快。", dim: "EI" },
+        { q: "結束熱鬧的聚會或戶外活動後，孩子看起來依然很有精神，不太需要安靜獨處。", dim: "EI" },
+        { q: "孩子享受成為焦點的感覺，例如喜歡上台展示作品或在眾人面前說笑話。", dim: "EI" },
+        { q: "面對全新的環境（如新班級、新遊樂場），孩子能迅速放開束縛並開始探索。", dim: "EI" },
+        
+        // S vs N (5題)
+        { q: "孩子能精確觀察到周遭環境的微小變化（如媽媽換髮色、桌上多件東西）。", dim: "SN" },
+        { q: "孩子較喜歡動手操作、科學觀察或閱讀關於「真實世界」的百科全書。", dim: "SN" },
+        { q: "教導新技能時，孩子偏好看到明確的步驟示範，而非聽模糊的理論說明。", dim: "SN" },
+        { q: "孩子描述事情時非常寫實，會依照時間先後順序講述「發生了什麼事」。", dim: "SN" },
+        { q: "喜歡有具體目標的玩具（如拼圖、模型），並致力於拼得跟包裝圖示一模一樣。", dim: "SN" },
+
+        // T vs F (5題)
+        { q: "當孩子覺得某項規則不合理或不公平時，會堅持與大人爭辯並要求理由。", dim: "TF" },
+        { q: "孩子認為「公平」就是每個人都必須遵守同樣的規則，不應有人有例外。", dim: "TF" },
+        { q: "看到朋友哭泣時，孩子的第一反應往往是詢問「發生了什麼事？」試圖分析原因。", dim: "TF" },
+        { q: "孩子對被讚美「你很聰明、做得很快」的反應，比被讚美「你好乖」更好。", dim: "TF" },
+        { q: "面對衝突或意外時，孩子表現得相對冷靜，會思考解決方法而不是先哭鬧。", dim: "TF" },
+
+        // J vs P (5題)
+        { q: "孩子喜歡預先知道接下來的行程安排，計畫臨時被更改會感到不安或沮喪。", dim: "JP" },
+        { q: "孩子在玩耍結束後，會習慣性地將玩具放回原位，維持自己的領域整潔。", dim: "JP" },
+        { q: "面對該做的事情（如寫練習本），孩子傾向於先完成它再開始玩。", dim: "JP" },
+        { q: "孩子對時間點有概念，會主動提醒大人「我們要出發了」或「快遲到了」。", dim: "JP" },
+        { q: "在做選擇時（如選餐點），孩子能快速做出決定且事後很少後悔。", dim: "JP" }
+    ];
+
+    let currentIdx = 0;
+    let scores = { EI: 0, SN: 0, TF: 0, JP: 0 };
+
+    const typeDetails = {
+        "ISTJ": { title: "可靠的小管家", desc: "做事認真且守規矩，重視細節與事實。喜歡生活有條理，是個負責的小幫手！" },
+        "ISFJ": { title: "溫柔的小天使", desc: "觀察入微且樂於助人，總是能發現別人的需要。內心安靜但充滿愛心。" },
+        "INFJ": { title: "神秘的小先知", desc: "很有想法，對朋友非常忠誠。喜歡思考深刻的事情，像個有智慧的小大人。" },
+        "INTJ": { title: "智慧的小軍師", desc: "具備強大的邏輯與計畫能力，喜歡獨自解決難題。對目標非常堅持且有遠見。" },
+        "ISTP": { title: "酷酷的小職人", desc: "動手能力極強！喜歡研究東西運作的原理。冷靜觀察，是天生的問題解決者。" },
+        "ISFP": { title: "小小藝術家", desc: "熱愛美感與自由，享受當下的感覺。有一顆柔軟的心，非常體貼身邊的人。" },
+        "INFP": { title: "夢想小詩人", desc: "充滿想像力，內心世界豐富。重視善良與價值觀，總是在追尋美好事物。" },
+        "INTP": { title: "小小思想家", desc: "對世界充滿好奇，喜歡獨立思考與邏輯連結。不愛照規矩來，喜歡探索各種可能。" },
+        "ESTP": { title: "熱血小勇士", desc: "充滿活力，喜歡冒險和挑戰。是個行動派，總能快速應對眼前的各種狀況。" },
+        "ESFP": { title: "閃亮小巨星", desc: "極具感染力，能帶給周圍的人快樂。喜歡成為目光焦點，活潑且熱情。" },
+        "ENFP": { title: "快樂小噴泉", desc: "充滿創意與熱情！總是有各種新點子，喜歡探索新事物，是大家的開心果。" },
+        "ENTP": { title: "點子小教頭", desc: "腦袋轉得飛快，喜歡思考與挑戰新觀點。聰明幽默，總能找到新方法解決問題。" },
+        "ESTJ": { title: "小小領隊員", desc: "具有領導力，喜歡帶領大家達成目標。做事果斷、守信用，且非常重視效率。" },
+        "ESFJ": { title: "親善小大使", desc: "非常受歡迎，喜歡照顧身邊的每個人。擅長讓氣氛變得和諧、溫暖。" },
+        "ENFJ": { title: "溫暖的小導師", desc: "富有同理心，擅長鼓勵與激發別人的潛力。是個充滿正能量的領導者。" },
+        "ENTJ": { title: "小小指揮官", desc: "非常有自信，喜歡策劃大局。目標明確，總是能有條理地帶領大家克服困難。" }
+    };
+
+    function updateQuestion() {
+        if (currentIdx < questions.length) {
+            document.getElementById('question-text').innerText = `${currentIdx + 1}. ${questions[currentIdx].q}`;
+            document.getElementById('progress').style.width = `${(currentIdx / questions.length) * 100}%`;
+        } else {
+            showResult();
+        }
+    }
+
+    function handleAnswer(val) {
+        const dim = questions[currentIdx].dim;
+        scores[dim] += val;
+        currentIdx++;
+        updateQuestion();
+    }
+
+    function showResult() {
+        document.getElementById('quiz-page').style.display = 'none';
+        document.getElementById('result-page').style.display = 'block';
+
+        let result = "";
+        // 門檻邏輯：每維度5題，總分25。大於12.5(取13)判定為前半碼。
+        result += (scores.EI >= 13) ? "E" : "I";
+        result += (scores.SN >= 13) ? "S" : "N";
+        result += (scores.TF >= 13) ? "T" : "F";
+        result += (scores.JP >= 13) ? "J" : "P";
+
+        const detail = typeDetails[result];
+        document.getElementById('mbti-type').innerText = result;
+        document.getElementById('mbti-title').innerText = detail.title;
+        document.getElementById('mbti-desc').innerText = detail.desc;
+    }
+
+    updateQuestion();
+</script>
+
+</body>
+</html>
